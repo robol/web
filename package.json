@@ -103,6 +103,7 @@
     "jquery": "^2.2.4",
     "json2csv": "^4.3.3",
     "jsonwebtoken": "^8.5.1",
+    "ldapjs": "^2.2.4",
     "lodash": "^4.17.19",
     "logger-sharelatex": "^2.2.0",
     "lru-cache": "^6.0.0",
