@@ -20,14 +20,15 @@ jobs:
             type=semver,pattern={{version}}
       - name: Build Docker image
         run: |
-          echo -e ${{ steps.meta.outputs.tags }} | while read -r tag; do
+          TAGS="${{ steps.meta.outputs.tags }}"
+          for tag in $TAGS; do
             echo "Tag: $tag"
           done
           git clone https://github.com/robol/overleaf.git
           cd overleaf
           sed -i "6s/master/$(echo $GITHUB_REF | cut -d '/' -f3)/g" services.js
           sudo make build-community
-          echo -e ${{ steps.meta.outputs.tags }} | while read -r tag; do
+          for tag in TAGS; do
             sudo docker tag robol/sharelatex $tag
           done
       - name: Login to DockerHub
