@@ -3,7 +3,8 @@ import PropTypes from 'prop-types'
 import { useTranslation } from 'react-i18next'
 import { Dropdown, MenuItem, OverlayTrigger, Tooltip } from 'react-bootstrap'
 import Icon from '../../../shared/components/icon'
-import ColorManager from '../../../ide/colors/ColorManager'
+import { getHueForUserId } from '../../../shared/utils/colors'
+import ControlledDropdown from '../../../shared/components/controlled-dropdown'
 
 function OnlineUsersWidget({ onlineUsers, goToUser }) {
   const { t } = useTranslation()
@@ -12,7 +13,7 @@ function OnlineUsersWidget({ onlineUsers, goToUser }) {
 
   if (shouldDisplayDropdown) {
     return (
-      <Dropdown id="online-users" className="online-users" pullRight>
+      <ControlledDropdown id="online-users" className="online-users" pullRight>
         <DropDownToggleButton
           bsRole="toggle"
           onlineUserCount={onlineUsers.length}
@@ -30,7 +31,7 @@ function OnlineUsersWidget({ onlineUsers, goToUser }) {
             </MenuItem>
           ))}
         </Dropdown.Menu>
-      </Dropdown>
+      </ControlledDropdown>
     )
   } else {
     return (
@@ -64,9 +65,7 @@ OnlineUsersWidget.propTypes = {
 }
 
 function UserIcon({ user, showName, onClick }) {
-  const backgroundColor = `hsl(${ColorManager.getHueForUserId(
-    user.user_id
-  )}, 70%, 50%)`
+  const backgroundColor = `hsl(${getHueForUserId(user.user_id)}, 70%, 50%)`
 
   function handleOnClick() {
     onClick(user)
@@ -111,6 +110,8 @@ const DropDownToggleButton = React.forwardRef((props, ref) => {
     </OverlayTrigger>
   )
 })
+
+DropDownToggleButton.displayName = 'DropDownToggleButton'
 
 DropDownToggleButton.propTypes = {
   onlineUserCount: PropTypes.number.isRequired,

@@ -41,23 +41,17 @@
 
     // Disable some rules after upgrading ESLint
     // TODO: re-enable and fix
-    "no-prototype-builtins": "off",
     "no-var": "off",
-    "prefer-const": "off",
-    "array-callback-return": "off",
-    "no-unreachable-loop": "off",
-    "no-loss-of-precision": "off",
+
+    // do not allow importing of implicit dependencies.
+    "import/no-extraneous-dependencies": "error",
 
     "node/no-callback-literal": "off",
     "node/no-deprecated-api": "off",
     "node/handle-callback-err": "off",
     "node/no-path-concat": "off",
 
-    "react/display-name": "off",
-    "react/no-unescaped-entities": "off",
-    "react/no-unused-prop-types": "off",
     "react/jsx-no-target-blank": "off",
-    "react/jsx-handler-names": "off"
   },
   "overrides": [
     // NOTE: changing paths may require updating them in the Makefile too.
@@ -101,7 +95,13 @@
       "files": ["**/app/src/**/*.js"],
       "rules": {
         // don't allow console.log in backend code
-        "no-console": "error"
+        "no-console": "error",
+
+        // do not allow importing of implicit dependencies.
+        "import/no-extraneous-dependencies": ["error", {
+          // do not allow importing of devDependencies.
+          "devDependencies": false
+        }]
       }
     },
     {
@@ -145,6 +145,15 @@
             }
           }
         ]
+      }
+    },
+    {
+      "files": ["scripts/ukamf/*.js"],
+      "rules": {
+        // Do not allow importing of any dependencies unless specified in either
+        //  - web/package.json
+        //  - web/scripts/ukamf/package.json
+        "import/no-extraneous-dependencies": ["error", {"packageDir": [".", "scripts/ukamf"]}]
       }
     }
   ]

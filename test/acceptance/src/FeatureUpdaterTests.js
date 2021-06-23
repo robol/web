@@ -17,7 +17,7 @@ before(function () {
 })
 
 const syncUserAndGetFeatures = function (user, callback) {
-  FeaturesUpdater.refreshFeatures(user._id, error => {
+  FeaturesUpdater.refreshFeatures(user._id, 'test', error => {
     if (error) {
       return callback(error)
     }
@@ -370,7 +370,7 @@ describe('FeatureUpdater.refreshFeatures', function () {
         if (error) {
           throw error
         }
-        let expectedFeatures = Object.assign(settings.defaultFeatures, {
+        const expectedFeatures = Object.assign(settings.defaultFeatures, {
           github: true,
           trackChanges: true,
         })
@@ -378,5 +378,18 @@ describe('FeatureUpdater.refreshFeatures', function () {
         done()
       })
     })
+  })
+
+  it('should update featuresUpdatedAt', async function () {
+    user = (await UserHelper.getUser({ _id: user._id })).user
+    expect(user.featuresUpdatedAt).to.not.exist // no default set
+    await FeaturesUpdater.promises.refreshFeatures(user._id, 'test')
+    user = (await UserHelper.getUser({ _id: user._id })).user
+    const featuresUpdatedAt = user.featuresUpdatedAt
+    expect(featuresUpdatedAt).to.exist
+    // refresh again
+    await FeaturesUpdater.promises.refreshFeatures(user._id, 'test')
+    user = (await UserHelper.getUser({ _id: user._id })).user
+    expect(user.featuresUpdatedAt > featuresUpdatedAt).to.be.true
   })
 })

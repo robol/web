@@ -30,6 +30,7 @@ const MONTH_NAMES = [
   'November',
   'December',
 ]
+const EXAMPLE_PROJECT_SPLITTEST_ID = 'example-project-v2'
 
 async function createBlankProject(ownerId, projectName, attributes = {}) {
   const isImport = attributes && attributes.overleaf
@@ -70,9 +71,9 @@ async function createBasicProject(ownerId, projectName) {
 async function createExampleProject(ownerId, projectName) {
   const project = await _createBlankProject(ownerId, projectName)
 
-  const testSegmentation = SplitTestHandler.getTestSegmentation(
+  const testSegmentation = await SplitTestHandler.promises.getTestSegmentation(
     ownerId,
-    'example-project'
+    EXAMPLE_PROJECT_SPLITTEST_ID
   )
 
   if (testSegmentation.variant === 'example-frog') {
@@ -84,7 +85,7 @@ async function createExampleProject(ownerId, projectName) {
   if (testSegmentation.enabled) {
     AnalyticsManager.recordEvent(ownerId, 'project-created', {
       projectId: project._id,
-      splitTestId: 'example-project',
+      splitTestId: EXAMPLE_PROJECT_SPLITTEST_ID,
       splitTestVariantId: testSegmentation.variant,
     })
   } else {
@@ -223,7 +224,7 @@ async function _buildTemplate(templateName, userId, projectName) {
     year: new Date().getUTCFullYear(),
     month: MONTH_NAMES[new Date().getUTCMonth()],
   }
-  const output = _.template(template.toString(), data)
+  const output = _.template(template.toString())(data)
   return output.split('\n')
 }
 

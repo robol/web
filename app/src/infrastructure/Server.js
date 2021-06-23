@@ -81,6 +81,12 @@ if (Settings.exposeHostname) {
   })
 }
 
+webRouter.get(
+  '/serviceWorker.js',
+  express.static(Path.join(__dirname, '/../../../public'), {
+    maxAge: oneDayInMilliseconds,
+  })
+)
 webRouter.use(
   express.static(Path.join(__dirname, '/../../../public'), {
     maxAge: STATIC_CACHE_AGE,
@@ -242,7 +248,7 @@ if (Settings.enabledServices.includes('api')) {
 if (Settings.enabledServices.includes('web')) {
   logger.info('providing web router')
 
-  if (app.get('env') === 'production') {
+  if (Settings.precompilePugTemplatesAtBootTime) {
     logger.info('precompiling views for web in production environment')
     Views.precompileViews(app)
   }

@@ -1,9 +1,13 @@
 import { expect } from 'chai'
 import React from 'react'
 import sinon from 'sinon'
-import { screen, render, fireEvent, waitFor } from '@testing-library/react'
+import { screen, fireEvent, waitFor } from '@testing-library/react'
 import fetchMock from 'fetch-mock'
 
+import {
+  renderWithEditorContext,
+  cleanUpContext,
+} from '../../../helpers/render-with-context'
 import FileTreeRoot from '../../../../../frontend/js/features/file-tree/components/file-tree-root'
 
 describe('<FileTreeRoot/>', function () {
@@ -19,6 +23,7 @@ describe('<FileTreeRoot/>', function () {
     fetchMock.restore()
     onSelect.reset()
     onInit.reset()
+    cleanUpContext()
     global.localStorage.clear()
   })
 
@@ -31,7 +36,7 @@ describe('<FileTreeRoot/>', function () {
         fileRefs: [],
       },
     ]
-    const { container } = render(
+    const { container } = renderWithEditorContext(
       <FileTreeRoot
         rootFolder={rootFolder}
         projectId="123abc"
@@ -67,7 +72,7 @@ describe('<FileTreeRoot/>', function () {
         fileRefs: [],
       },
     ]
-    render(
+    renderWithEditorContext(
       <FileTreeRoot
         rootFolder={rootFolder}
         projectId="123abc"
@@ -106,7 +111,7 @@ describe('<FileTreeRoot/>', function () {
       },
     ]
 
-    const { container } = render(
+    const { container } = renderWithEditorContext(
       <FileTreeRoot
         rootFolder={rootFolder}
         projectId="123abc"
@@ -138,7 +143,7 @@ describe('<FileTreeRoot/>', function () {
         fileRefs: [],
       },
     ]
-    render(
+    renderWithEditorContext(
       <FileTreeRoot
         rootFolder={rootFolder}
         projectId="123abc"
@@ -191,7 +196,7 @@ describe('<FileTreeRoot/>', function () {
         fileRefs: [],
       },
     ]
-    render(
+    renderWithEditorContext(
       <FileTreeRoot
         rootFolder={rootFolder}
         projectId="123abc"
@@ -221,5 +226,65 @@ describe('<FileTreeRoot/>', function () {
     )
     screen.getByRole('treeitem', { name: 'main.tex', selected: false })
     screen.getByRole('treeitem', { name: 'other.tex', selected: true })
+  })
+
+  it('only shows a menu button when a single item is selected', function () {
+    const rootFolder = [
+      {
+        _id: 'root-folder-id',
+        docs: [
+          { _id: '456def', name: 'main.tex' },
+          { _id: '789ghi', name: 'other.tex' },
+        ],
+        folders: [],
+        fileRefs: [],
+      },
+    ]
+    renderWithEditorContext(
+      <FileTreeRoot
+        rootFolder={rootFolder}
+        projectId="123abc"
+        rootDocId="456def"
+        hasWritePermissions
+        userHasFeature={() => true}
+        refProviders={{}}
+        reindexReferences={() => null}
+        setRefProviderEnabled={() => null}
+        setStartedFreeTrial={() => null}
+        onSelect={onSelect}
+        onInit={onInit}
+        isConnected
+      />
+    )
+
+    const main = screen.getByRole('treeitem', {
+      name: 'main.tex',
+      selected: true,
+    })
+    const other = screen.getByRole('treeitem', {
+      name: 'other.tex',
+      selected: false,
+    })
+
+    // single item selected: menu button is visible
+    expect(screen.queryAllByRole('button', { name: 'Menu' })).to.have.length(1)
+
+    // select the other item
+    fireEvent.click(other)
+
+    screen.getByRole('treeitem', { name: 'main.tex', selected: false })
+    screen.getByRole('treeitem', { name: 'other.tex', selected: true })
+
+    // single item selected: menu button is visible
+    expect(screen.queryAllByRole('button', { name: 'Menu' })).to.have.length(1)
+
+    // multi-select the main item
+    fireEvent.click(main, { ctrlKey: true })
+
+    screen.getByRole('treeitem', { name: 'main.tex', selected: true })
+    screen.getByRole('treeitem', { name: 'other.tex', selected: true })
+
+    // multiple items selected: no menu button is visible
+    expect(screen.queryAllByRole('button', { name: 'Menu' })).to.have.length(0)
   })
 })

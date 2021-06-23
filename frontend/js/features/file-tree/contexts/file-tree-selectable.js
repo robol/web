@@ -13,7 +13,7 @@ import classNames from 'classnames'
 import { findInTree } from '../util/find-in-tree'
 import { useFileTreeMutable } from './file-tree-mutable'
 import { useFileTreeMainContext } from './file-tree-main'
-import usePersistedState from '../../../infrastructure/persisted-state-hook'
+import usePersistedState from '../../../shared/hooks/use-persisted-state'
 
 const FileTreeSelectableContext = createContext()
 
@@ -123,9 +123,9 @@ export function FileTreeSelectableProvider({
 
   // calls `onSelect` on entities selection
   useEffect(() => {
-    const selectedEntities = Array.from(selectedEntityIds).map(id =>
-      findInTree(fileTreeData, id)
-    )
+    const selectedEntities = Array.from(selectedEntityIds)
+      .map(id => findInTree(fileTreeData, id))
+      .filter(Boolean)
     onSelect(selectedEntities)
   }, [fileTreeData, selectedEntityIds, onSelect])
 

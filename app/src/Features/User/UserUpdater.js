@@ -81,6 +81,42 @@ async function addEmailAddress(userId, newEmail, affiliationOptions, auditLog) {
   }
 }
 
+async function clearSAMLData(userId, auditLog, sendEmail) {
+  const user = await UserGetter.promises.getUser(userId, {
+    email: 1,
+    emails: 1,
+  })
+
+  await UserAuditLogHandler.promises.addEntry(
+    userId,
+    'clear-institution-sso-data',
+    auditLog.initiatorId,
+    auditLog.ipAddress,
+    {}
+  )
+
+  const update = {
+    $unset: {
+      samlIdentifiers: 1,
+      'emails.$[].samlProviderId': 1,
+    },
+  }
+  await UserUpdater.promises.updateUser(userId, update)
+
+  for (const emailData of user.emails) {
+    await InstitutionsAPIPromises.removeEntitlement(userId, emailData.email)
+  }
+
+  await FeaturesUpdater.promises.refreshFeatures(
+    userId,
+    'clear-institution-sso-data'
+  )
+
+  if (sendEmail) {
+    await EmailHandler.promises.sendEmail('SAMLDataCleared', { to: user.email })
+  }
+}
+
 async function setDefaultEmailAddress(
   userId,
   email,
@@ -193,7 +229,7 @@ async function confirmEmail(userId, email) {
   if (res.n === 0) {
     throw new Errors.NotFoundError('user id and email do no match')
   }
-  await FeaturesUpdater.promises.refreshFeatures(userId)
+  await FeaturesUpdater.promises.refreshFeatures(userId, 'confirm-email')
 }
 
 const UserUpdater = {
@@ -308,10 +344,12 @@ const UserUpdater = {
         if (res.n === 0) {
           return callback(new Error('Cannot remove email'))
         }
-        FeaturesUpdater.refreshFeatures(userId, callback)
+        FeaturesUpdater.refreshFeatures(userId, 'remove-email', callback)
       })
     })
   },
+
+  clearSAMLData: callbackify(clearSAMLData),
 
   // set the default email address by setting the `email` attribute. The email
   // must be one of the user's multiple emails (`emails` attribute)

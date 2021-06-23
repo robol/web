@@ -129,6 +129,7 @@ const UserSchema = new Schema({
       },
     },
   ],
+  featuresUpdatedAt: { type: Date },
   // when auto-merged from SL and must-reconfirm is set, we may end up using
   // `sharelatexHashedPassword` to recover accounts...
   sharelatexHashedPassword: String,
@@ -164,6 +165,7 @@ const UserSchema = new Schema({
   },
   onboardingEmailSentAt: { type: Date },
   auditLog: [AuditLogEntrySchema],
+  splitTests: Schema.Types.Mixed,
 })
 
 exports.User = mongoose.model('User', UserSchema)

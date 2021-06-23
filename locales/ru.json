@@ -405,7 +405,6 @@
   "sl_used_over_x_people_at": "__appName__ используется более чем __numberOfUsers__ студентами и преподавателями в:",
   "collaboration": "Совместная разработка",
   "work_on_single_version": "Совместная работа над одной версией",
-  "view_collab_edits": "Смотреть правки других участников ",
   "ease_of_use": " Легко использовать",
   "no_complicated_latex_install": "Не требуется сложной установки LaTeX",
   "all_packages_and_templates": "Все нужные пакеты и <0>__templatesLink__</0>",
@@ -432,7 +431,6 @@
   "admin": "администратор",
   "subscribe": "Подписаться",
   "update_billing_details": "Обновить детали счёта",
-  "thank_you": "Спасибо!",
   "group_admin": "Администратор группы",
   "all_templates": "Все шаблоны",
   "your_settings": "Ваши настройки",
@@ -697,5 +695,6 @@
   "unlink_github": "Отвязать аккаунт на GitHub",
   "link_to_github": "Привязать аккаунт на GitHub",
   "github_integration": "Интеграция с GitHub",
-  "github_is_premium": "Синхронизация с GitHub доступна только в премиум аккаунте"
+  "github_is_premium": "Синхронизация с GitHub доступна только в премиум аккаунте",
+  "thank_you": "Спасибо!"
 }

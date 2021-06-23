@@ -157,11 +157,15 @@ export default describe('HistoryV2Manager', function () {
         $http: $http,
         $filter: $filter,
       }
+      this.eventTracking = {
+        sendMB: () => {},
+      }
       this.localStorage = sinon.stub().returns(null)
       this.historyManager = new HistoryV2Manager(
         this.ide,
         this.$scope,
-        this.localStorage
+        this.localStorage,
+        this.eventTracking
       )
       done()
     })
@@ -172,9 +176,13 @@ export default describe('HistoryV2Manager', function () {
   })
 
   it('should keep history updates after performing a soft reset', function () {
-    let historyScopeWithUpdates = Object.assign({}, this.defaultHistoryScope, {
-      updates: this.sampleUpdates,
-    })
+    const historyScopeWithUpdates = Object.assign(
+      {},
+      this.defaultHistoryScope,
+      {
+        updates: this.sampleUpdates,
+      }
+    )
     this.$scope.history.updates = this.sampleUpdates
     this.historyManager.softReset()
     expect(this.$scope.history).to.deep.equal(historyScopeWithUpdates)

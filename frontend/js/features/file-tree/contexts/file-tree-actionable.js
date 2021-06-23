@@ -4,6 +4,7 @@ import React, {
   useMemo,
   useReducer,
   useContext,
+  useEffect,
 } from 'react'
 import PropTypes from 'prop-types'
 
@@ -15,7 +16,7 @@ import {
   syncMove,
   syncCreateEntity,
 } from '../util/sync-mutation'
-import { findInTreeOrThrow } from '../util/find-in-tree'
+import { findInTree, findInTreeOrThrow } from '../util/find-in-tree'
 import { isNameUniqueInFolder } from '../util/is-name-unique-in-folder'
 import { isBlockedFilename, isCleanFilename } from '../util/safe-path'
 
@@ -323,6 +324,22 @@ export function FileTreeActionableProvider({ hasWritePermissions, children }) {
     dispatch({ type: ACTION_TYPES.CANCEL })
   }, [])
 
+  // listen for `file-tree.start-creating` events
+  useEffect(() => {
+    function handleEvent(event) {
+      dispatch({
+        type: ACTION_TYPES.START_CREATE_FILE,
+        newFileCreateMode: event.detail.mode,
+      })
+    }
+
+    window.addEventListener('file-tree.start-creating', handleEvent)
+
+    return () => {
+      window.removeEventListener('file-tree.start-creating', handleEvent)
+    }
+  }, [])
+
   const value = {
     canDelete: selectedEntityIds.size > 0,
     canRename: selectedEntityIds.size === 1,
@@ -380,7 +397,13 @@ function getSelectedParentFolderId(fileTreeData, selectedEntityIds) {
     return fileTreeData._id
   }
 
-  const found = findInTreeOrThrow(fileTreeData, selectedEntityId)
+  const found = findInTree(fileTreeData, selectedEntityId)
+
+  if (!found) {
+    // if the entity isn't in the tree, return the root folder id.
+    return fileTreeData._id
+  }
+
   return found.type === 'folder' ? found.entity._id : found.parentFolderId
 }
 

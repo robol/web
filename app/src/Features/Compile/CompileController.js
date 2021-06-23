@@ -46,9 +46,11 @@ module.exports = CompileController = {
     res.setTimeout(COMPILE_TIMEOUT_MS)
     const project_id = req.params.Project_id
     const isAutoCompile = !!req.query.auto_compile
+    const enablePdfCaching = !!req.query.enable_pdf_caching
     const user_id = AuthenticationController.getLoggedInUserId(req)
     const options = {
       isAutoCompile,
+      enablePdfCaching,
     }
 
     if (req.body.rootDoc_id) {
@@ -83,7 +85,9 @@ module.exports = CompileController = {
         outputFiles,
         clsiServerId,
         limits,
-        validationProblems
+        validationProblems,
+        stats,
+        timings
       ) => {
         if (error) {
           Metrics.inc('compile-error')
@@ -96,6 +100,8 @@ module.exports = CompileController = {
           compileGroup: limits != null ? limits.compileGroup : undefined,
           clsiServerId,
           validationProblems,
+          stats,
+          timings,
           pdfDownloadDomain: Settings.pdfDownloadDomain,
         })
       }
@@ -526,7 +532,7 @@ module.exports = CompileController = {
       // do not send any others, there's a proxying loop if Host: is passed!
       if (req.query != null ? req.query.pdfng : undefined) {
         const newHeaders = {}
-        for (let h in req.headers) {
+        for (const h in req.headers) {
           const v = req.headers[h]
           if (/^(If-|Range)/i.test(h)) {
             newHeaders[h] = req.headers[h]

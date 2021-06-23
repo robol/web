@@ -262,7 +262,6 @@
   "sl_used_over_x_people_at": "__appName__-sovellusta käyttää yli __numberOfUsers__ opiskelijaa ja akateemista seuraavissa paikoissa kuin:",
   "collaboration": "Yhteistyö",
   "work_on_single_version": "Työskentele yhdessä yhdellä versiolla",
-  "view_collab_edits": "Katso työtovereiden tekemät muutokset ",
   "ease_of_use": " Helppokäyttöisyys",
   "no_complicated_latex_install": "Ei monimutkaista LaTeXin asennusta",
   "all_packages_and_templates": "Kaikki paketit ja <0>__templatesLink__</0> mitä tarvitset",
@@ -289,7 +288,6 @@
   "admin": "ylläpitäjä",
   "subscribe": "Tilaa",
   "update_billing_details": "Päivitä laskutustiedot",
-  "thank_you": "Kiitos",
   "group_admin": "Ryhmän ylläpitäjä",
   "all_templates": "Kaikki mallipohjat",
   "your_settings": "Asetuksesi",
@@ -550,5 +548,6 @@
   "unlink_github": "Poista linkitys GitHub-tiliisi",
   "link_to_github": "Linkitä GitHub-tiliisi",
   "github_integration": "GitHub Integraatio",
-  "github_is_premium": "GitHub-synkronointi on premium-ominaisuus"
+  "github_is_premium": "GitHub-synkronointi on premium-ominaisuus",
+  "thank_you": "Kiitos"
 }

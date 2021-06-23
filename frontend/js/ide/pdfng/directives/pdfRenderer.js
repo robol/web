@@ -95,10 +95,10 @@ export default App.factory(
             clearTimeout(this.queueTimer)
           }
           // clear any existing timers, render tasks
-          for (let timer of Array.from(this.spinTimer || [])) {
+          for (const timer of Array.from(this.spinTimer || [])) {
             clearTimeout(timer)
           }
-          for (let page of Array.from(this.pageState || [])) {
+          for (const page of Array.from(this.pageState || [])) {
             __guard__(page != null ? page.loadTask : undefined, x => x.cancel())
             __guard__(page != null ? page.renderTask : undefined, x1 =>
               x1.cancel()
@@ -233,7 +233,7 @@ export default App.factory(
             this.queuedPages[page.pagenum] = true
           }
           // clear any unfinished spinner timers on pages that aren't in the queue any more
-          for (let pagenum in this.spinTimer) {
+          for (const pagenum in this.spinTimer) {
             if (!this.queuedPages[pagenum]) {
               clearTimeout(this.spinTimer[pagenum])
               delete this.spinTimer[pagenum]
@@ -258,7 +258,7 @@ export default App.factory(
           const [canvas, pagenum] = Array.from(this.getPageDetails(page))
           canvas.addClass('pdfng-loading')
           return (this.spinTimer[pagenum] = setTimeout(() => {
-            for (let queuedPage of Array.from(this.renderQueue)) {
+            for (const queuedPage of Array.from(this.renderQueue)) {
               if (pagenum === queuedPage.pagenum) {
                 this.spinner.add(canvas, { static: true })
                 this.spinTimerDone[pagenum] = true
@@ -362,9 +362,31 @@ export default App.factory(
               if (loadTask.cancelled) {
                 return
               } // return from cancelled page load
+              const timePDFFetched = performance.now()
+
+              const visible = !document.hidden
+              if (!visible) {
+                // Flush the fetch time early, omit the render time.
+                if (typeof this.options.firstRenderDone === 'function') {
+                  this.options.firstRenderDone({ timePDFFetched })
+                  // Do not submit the actual rendering time.
+                  this.options.firstRenderDone = null
+                }
+              }
+
               pageState.renderTask = this.doRender(element, pagenum, pageObject)
               return pageState.renderTask.promise.then(
                 () => {
+                  if (typeof this.options.firstRenderDone === 'function') {
+                    const timePDFRendered = performance.now()
+                    this.options.firstRenderDone({
+                      timePDFFetched,
+                      timePDFRendered,
+                    })
+                    // The rendering pipeline is processed repeatedly, skip the next ones.
+                    this.options.firstRenderDone = null
+                  }
+
                   // render task success
                   this.clearIndicator(page)
                   pageState.complete = true

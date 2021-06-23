@@ -18,6 +18,7 @@ const UrlHelper = require('../Helpers/UrlHelper')
 const AsyncFormHelper = require('../Helpers/AsyncFormHelper')
 const _ = require('lodash')
 const UserAuditLogHandler = require('../User/UserAuditLogHandler')
+const AnalyticsRegistrationSourceHelper = require('../Analytics/AnalyticsRegistrationSourceHelper')
 const {
   acceptsJson,
 } = require('../../infrastructure/RequestContentTypeDetection')
@@ -115,6 +116,8 @@ const AuthenticationController = {
               return next(err)
             }
             AuthenticationController._clearRedirectFromSession(req)
+            AnalyticsRegistrationSourceHelper.clearSource(req.session)
+            AnalyticsRegistrationSourceHelper.clearInbound(req.session)
             AsyncFormHelper.redirect(req, res, redir)
           })
         })
@@ -187,7 +190,7 @@ const AuthenticationController = {
     if (!sessionUser) {
       return
     }
-    for (let key in props) {
+    for (const key in props) {
       const value = props[key]
       sessionUser[key] = value
     }
@@ -316,7 +319,7 @@ const AuthenticationController = {
     }
 
     if (req.headers.authorization != null) {
-      AuthenticationController.httpAuth(req, res, next)
+      AuthenticationController.requirePrivateApiAuth()(req, res, next)
     } else if (AuthenticationController.isUserLoggedIn(req)) {
       next()
     } else {
@@ -361,17 +364,23 @@ const AuthenticationController = {
     return next()
   },
 
-  httpAuth: basicAuth(function (user, pass) {
-    let expectedPassword = Settings.httpAuthUsers[user]
-    const isValid =
-      expectedPassword &&
-      expectedPassword.length === pass.length &&
-      crypto.timingSafeEqual(Buffer.from(expectedPassword), Buffer.from(pass))
-    if (!isValid) {
-      logger.err({ user, pass }, 'invalid login details')
-    }
-    return isValid
-  }),
+  requireBasicAuth: function (userDetails) {
+    return basicAuth(function (user, pass) {
+      const expectedPassword = userDetails[user]
+      const isValid =
+        expectedPassword &&
+        expectedPassword.length === pass.length &&
+        crypto.timingSafeEqual(Buffer.from(expectedPassword), Buffer.from(pass))
+      if (!isValid) {
+        logger.err({ user }, 'invalid login details')
+      }
+      return isValid
+    })
+  },
+
+  requirePrivateApiAuth() {
+    return AuthenticationController.requireBasicAuth(Settings.httpAuthUsers)
+  },
 
   setRedirectInSession(req, value) {
     if (value == null) {
@@ -499,7 +508,7 @@ function _afterLoginSessionSetup(req, user, callback) {
       req.sessionStore.generate(req)
       // Note: the validation token is not writable, so it does not get
       // transferred to the new session below.
-      for (let key in oldSession) {
+      for (const key in oldSession) {
         const value = oldSession[key]
         if (key !== '__tmp' && key !== 'csrfSecret') {
           req.session[key] = value

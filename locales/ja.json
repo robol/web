@@ -468,7 +468,6 @@
   "sl_used_over_x_people_at": "__appName__ は、__numberOfUsers__ 以上の生徒と大学で使用されています：",
   "collaboration": "コラボレーション",
   "work_on_single_version": "1つのバージョンで共同作業",
-  "view_collab_edits": "共同編集者による編集を表示",
   "ease_of_use": "使いやすい",
   "no_complicated_latex_install": "複雑なLaTeXのインストールは不要",
   "all_packages_and_templates": "必要なパッケージと <0>__templatesLink__</0> がすべて",
@@ -495,7 +494,6 @@
   "admin": "管理",
   "subscribe": "定期購読",
   "update_billing_details": "支払い詳細の更新",
-  "thank_you": "ありがとうございます",
   "group_admin": "グループ管理",
   "all_templates": "テンプレート一覧",
   "your_settings": "設定",
@@ -760,5 +758,6 @@
   "unlink_github": "GitHubアカウントの接続を解除",
   "link_to_github": "あなたのGitHubアカウントに接続",
   "github_integration": "GitHub連携",
-  "github_is_premium": "GitHub統合はプレミアム機能です"
+  "github_is_premium": "GitHub統合はプレミアム機能です",
+  "thank_you": "ありがとうございます"
 }

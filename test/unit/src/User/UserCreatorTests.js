@@ -43,9 +43,13 @@ describe('UserCreator', function () {
         }),
         '../Analytics/AnalyticsManager': (this.Analytics = {
           recordEvent: sinon.stub(),
+          setUserProperty: sinon.stub(),
         }),
         './UserOnboardingEmailManager': (this.UserOnboardingEmailManager = {
           scheduleOnboardingEmail: sinon.stub(),
+        }),
+        './UserPostRegistrationAnalyticsManager': (this.UserPostRegistrationAnalyticsManager = {
+          schedulePostRegistrationAnalytics: sinon.stub(),
         }),
       },
     })
@@ -261,7 +265,7 @@ describe('UserCreator', function () {
         assert.equal(user.emails[0].samlProviderId, '1')
       })
 
-      it('should fire an analytics event on registration', async function () {
+      it('should fire an analytics event and user property on registration', async function () {
         const user = await this.UserCreator.promises.createNewUser({
           email: this.email,
         })
@@ -271,9 +275,15 @@ describe('UserCreator', function () {
           user._id,
           'user-registered'
         )
+        sinon.assert.calledWith(
+          this.Analytics.setUserProperty,
+          user._id,
+          'created-at'
+        )
       })
 
-      it('should schedule an onboarding email on registration', async function () {
+      it('should schedule post registration jobs on registration with saas feature', async function () {
+        this.Features.hasFeature = sinon.stub().withArgs('saas').returns(true)
         const user = await this.UserCreator.promises.createNewUser({
           email: this.email,
         })
@@ -281,6 +291,23 @@ describe('UserCreator', function () {
         sinon.assert.calledWith(
           this.UserOnboardingEmailManager.scheduleOnboardingEmail,
           user
+        )
+        sinon.assert.calledWith(
+          this.UserPostRegistrationAnalyticsManager
+            .schedulePostRegistrationAnalytics,
+          user
+        )
+      })
+
+      it('should not schedule post registration checks when without saas feature', async function () {
+        const attributes = { email: this.email }
+        await this.UserCreator.promises.createNewUser(attributes)
+        sinon.assert.notCalled(
+          this.UserOnboardingEmailManager.scheduleOnboardingEmail
+        )
+        sinon.assert.notCalled(
+          this.UserPostRegistrationAnalyticsManager
+            .schedulePostRegistrationAnalytics
         )
       })
     })

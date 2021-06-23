@@ -90,7 +90,13 @@ const SubscriptionUpdater = {
         if (err != null) {
           return callback(err)
         }
-        async.map(memberIds, FeaturesUpdater.refreshFeatures, callback)
+        async.map(
+          memberIds,
+          function (userId, cb) {
+            FeaturesUpdater.refreshFeatures(userId, 'add-to-group', cb)
+          },
+          callback
+        )
       }
     )
   },
@@ -116,7 +122,11 @@ const SubscriptionUpdater = {
         if (error) {
           return callback(error)
         }
-        FeaturesUpdater.refreshFeatures(userId, callback)
+        FeaturesUpdater.refreshFeatures(
+          userId,
+          'remove-user-from-groups',
+          callback
+        )
       })
     })
   },
@@ -184,7 +194,7 @@ const SubscriptionUpdater = {
         if (err) {
           return callback(err)
         }
-        let subscription = deletedSubscription.subscription
+        const subscription = deletedSubscription.subscription
         async.series(
           [
             cb =>
@@ -216,7 +226,13 @@ const SubscriptionUpdater = {
     const userIds = [subscription.admin_id].concat(
       subscription.member_ids || []
     )
-    async.mapSeries(userIds, FeaturesUpdater.refreshFeatures, callback)
+    async.mapSeries(
+      userIds,
+      function (userId, cb) {
+        FeaturesUpdater.refreshFeatures(userId, 'subscription-updater', cb)
+      },
+      callback
+    )
   },
 
   _createDeletedSubscription(subscription, deleterData, callback) {
@@ -242,6 +258,34 @@ const SubscriptionUpdater = {
     subscription.save(err => callback(err, subscription))
   },
 
+  _deleteAndReplaceSubscriptionFromRecurly(
+    recurlySubscription,
+    subscription,
+    requesterData,
+    callback
+  ) {
+    const adminUserId = subscription.admin_id
+    SubscriptionUpdater.deleteSubscription(subscription, requesterData, err => {
+      if (err) {
+        return callback(err)
+      }
+      SubscriptionUpdater._createNewSubscription(
+        adminUserId,
+        (err, newSubscription) => {
+          if (err) {
+            return callback(err)
+          }
+          SubscriptionUpdater._updateSubscriptionFromRecurly(
+            recurlySubscription,
+            newSubscription,
+            requesterData,
+            callback
+          )
+        }
+      )
+    })
+  },
+
   _updateSubscriptionFromRecurly(
     recurlySubscription,
     subscription,
@@ -255,19 +299,31 @@ const SubscriptionUpdater = {
         callback
       )
     }
-    subscription.recurlySubscription_id = recurlySubscription.uuid
-    subscription.planCode = recurlySubscription.plan.plan_code
-    const plan = PlansLocator.findLocalPlanInSettings(subscription.planCode)
+    const updatedPlanCode = recurlySubscription.plan.plan_code
+    const plan = PlansLocator.findLocalPlanInSettings(updatedPlanCode)
+
     if (plan == null) {
-      return callback(
-        new Error(`plan code not found: ${subscription.planCode}`)
+      return callback(new Error(`plan code not found: ${updatedPlanCode}`))
+    }
+    if (!plan.groupPlan && subscription.groupPlan) {
+      // If downgrading from group to individual plan, delete group sub and create a new one
+      return SubscriptionUpdater._deleteAndReplaceSubscriptionFromRecurly(
+        recurlySubscription,
+        subscription,
+        requesterData,
+        callback
       )
     }
+
+    subscription.recurlySubscription_id = recurlySubscription.uuid
+    subscription.planCode = updatedPlanCode
+
     if (plan.groupPlan) {
       if (!subscription.groupPlan) {
         subscription.member_ids = subscription.member_ids || []
         subscription.member_ids.push(subscription.admin_id)
       }
+
       subscription.groupPlan = true
       subscription.membersLimit = plan.membersLimit
 

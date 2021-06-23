@@ -903,7 +903,7 @@
   "source": "Code source",
   "actions": "Actions",
   "copy_project": "Copier le projet",
-  "publish_as_template": "Publier comme modèle",
+  "publish_as_template": "Gérer le modèle",
   "sync": "Synchroniser",
   "settings": "Réglages",
   "main_document": "Document principal",
@@ -1043,7 +1043,6 @@
   "sl_used_over_x_people_at": "__appName__ est utilisé par plus de __numberOfUsers__ étudiants et universitaires à :",
   "collaboration": "Collaboration",
   "work_on_single_version": "Travaillez ensemble sur la même version",
-  "view_collab_edits": "Voyez les modifications des autres ",
   "ease_of_use": " Facilité d’utilisation",
   "no_complicated_latex_install": "Pas d’installation compliquée de LaTeX",
   "all_packages_and_templates": "Tous les paquets et <0>__templatesLink__</0> qu’il vous faut",
@@ -1070,7 +1069,6 @@
   "admin": "admin",
   "subscribe": "S’abonner",
   "update_billing_details": "Mettre à jour vos données de facturation",
-  "thank_you": "Merci",
   "group_admin": "Administrateur du groupe",
   "all_templates": "Tous les modèles",
   "your_settings": "Vos paramètres",
@@ -1341,5 +1339,6 @@
   "github_is_premium": "La synchronisation GitHub est une fonctionnalité premium",
   "remote_service_error": "Le service distant a renvoyé une erreur",
   "linked_file": "Fichier importé",
-  "n_items": "__count__ élément"
+  "n_items": "__count__ élément",
+  "thank_you": "Merci"
 }

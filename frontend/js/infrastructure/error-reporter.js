@@ -12,6 +12,7 @@ function sentryReporter() {
         Sentry.init({
           dsn: window.ExposedSettings.sentryDsn,
           release: window.ExposedSettings.sentryRelease,
+          autoSessionTracking: false,
 
           // Ignore errors unless they come from our origins
           // Adapted from: https://docs.sentry.io/platforms/javascript/#decluttering-sentry
@@ -49,18 +50,17 @@ function sentryReporter() {
         return Sentry
       })
       // If Sentry fails to load, use the null reporter instead
-      .catch(nullReporter)
+      .catch(error => {
+        console.error(error)
+        return nullReporter()
+      })
   )
 }
 
 function nullReporter() {
   return Promise.resolve({
-    captureException: error => {
-      console.error(error)
-    },
-    captureMessage: error => {
-      console.error(error)
-    },
+    captureException: console.error,
+    captureMessage: console.error,
   })
 }
 

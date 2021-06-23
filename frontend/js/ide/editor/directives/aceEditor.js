@@ -133,6 +133,21 @@ App.directive(
         editor.setOption('behavioursEnabled', scope.autoPairDelimiters || false)
         editor.setOption('wrapBehavioursEnabled', false)
 
+        ide.$scope.$on('editor:replace-selection', (event, text) => {
+          editor.focus()
+          const document = editor.session.getDocument()
+          const ranges = editor.selection.getAllRanges()
+          for (const range of ranges) {
+            document.replace(range, text)
+          }
+        })
+
+        ide.$scope.$on('symbol-palette-toggled', (event, isToggled) => {
+          if (!isToggled) {
+            editor.focus()
+          }
+        })
+
         scope.$watch('autoPairDelimiters', autoPairDelimiters => {
           if (autoPairDelimiters) {
             return editor.setOption('behavioursEnabled', true)
@@ -408,7 +423,7 @@ App.directive(
         }
 
         if (attrs.resizeOn != null) {
-          for (let event of Array.from(attrs.resizeOn.split(','))) {
+          for (const event of Array.from(attrs.resizeOn.split(','))) {
             scope.$on(event, function () {
               scope.$applyAsync(() => {
                 const previousScreenPosition = getCursorScreenPosition()

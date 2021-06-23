@@ -21,8 +21,18 @@ function getAnalyticsEditingSessionsQueue() {
   }
 }
 
+function getAnalyticsUserPropertiesQueue() {
+  if (Settings.analytics.enabled) {
+    return getOrCreateQueue('analytics-user-properties')
+  }
+}
+
 function getOnboardingEmailsQueue() {
   return getOrCreateQueue('emails-onboarding')
+}
+
+function getPostRegistrationAnalyticsQueue() {
+  return getOrCreateQueue('post-registration-analytics')
 }
 
 function getOrCreateQueue(queueName, defaultJobOptions) {
@@ -46,5 +56,7 @@ function getOrCreateQueue(queueName, defaultJobOptions) {
 module.exports = {
   getAnalyticsEventsQueue,
   getAnalyticsEditingSessionsQueue,
+  getAnalyticsUserPropertiesQueue,
   getOnboardingEmailsQueue,
+  getPostRegistrationAnalyticsQueue,
 }

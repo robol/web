@@ -61,7 +61,9 @@ class MockV1Api extends AbstractMockApi {
     options.id = id // include ID so that it is included in APIs
     this.institutions[id] = { ...options }
     if (options && options.hostname) {
-      this.addInstitutionDomain(id, options.hostname)
+      this.addInstitutionDomain(id, options.hostname, {
+        confirmed: options.confirmed,
+      })
     }
     return id
   }
@@ -90,7 +92,7 @@ class MockV1Api extends AbstractMockApi {
   }
 
   addAffiliation(userId, email) {
-    let institution = {}
+    const institution = {}
     if (!email) return
     if (!this.affiliations[userId]) this.affiliations[userId] = []
 
@@ -241,6 +243,26 @@ class MockV1Api extends AbstractMockApi {
       res.sendStatus(204)
     })
 
+    this.app.post(
+      '/api/v2/institutions/reconfirmation_lapsed_processed',
+      (req, res) => {
+        res.sendStatus(200)
+      }
+    )
+
+    this.app.get(
+      '/api/v2/institutions/need_reconfirmation_lapsed_processed',
+      (req, res) => {
+        const usersWithAffiliations = []
+        Object.keys(this.affiliations).forEach(userId => {
+          if (this.affiliations[userId].length > 0) {
+            usersWithAffiliations.push(userId)
+          }
+        })
+        res.json({ data: { users: usersWithAffiliations } })
+      }
+    )
+
     this.app.get('/api/v2/brands/:slug', (req, res) => {
       let brand
       if ((brand = this.brands[req.params.slug])) {
@@ -272,7 +294,7 @@ class MockV1Api extends AbstractMockApi {
     })
 
     this.app.post('/api/v1/sharelatex/login', (req, res) => {
-      for (let id in this.users) {
+      for (const id in this.users) {
         const user = this.users[id]
         if (
           user &&

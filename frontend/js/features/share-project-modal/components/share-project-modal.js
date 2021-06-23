@@ -16,9 +16,6 @@ ShareProjectContext.Provider.propTypes = {
     isAdmin: PropTypes.bool.isRequired,
     updateProject: PropTypes.func.isRequired,
     monitorRequest: PropTypes.func.isRequired,
-    eventTracking: PropTypes.shape({
-      sendMB: PropTypes.func.isRequired,
-    }),
     inFlight: PropTypes.bool,
     setInFlight: PropTypes.func,
     error: PropTypes.oneOfType([PropTypes.bool, PropTypes.string]),
@@ -82,18 +79,16 @@ export function useProjectContext() {
   return context
 }
 
-export default function ShareProjectModal({
+const ShareProjectModal = React.memo(function ShareProjectModal({
   handleHide,
   show,
   animation = true,
   isAdmin,
-  eventTracking,
-  ide,
 }) {
   const [inFlight, setInFlight] = useState(false)
   const [error, setError] = useState()
 
-  const [project, setProject] = useScopeValue('project', ide.$scope, true)
+  const [project, setProject] = useScopeValue('project', true)
 
   // reset error when the modal is opened
   useEffect(() => {
@@ -148,7 +143,6 @@ export default function ShareProjectModal({
       value={{
         isAdmin,
         updateProject,
-        eventTracking,
         monitorRequest,
         inFlight,
         setInFlight,
@@ -167,16 +161,12 @@ export default function ShareProjectModal({
       </ProjectContext.Provider>
     </ShareProjectContext.Provider>
   )
-}
+})
 ShareProjectModal.propTypes = {
   animation: PropTypes.bool,
   handleHide: PropTypes.func.isRequired,
   isAdmin: PropTypes.bool.isRequired,
-  ide: PropTypes.shape({
-    $scope: PropTypes.object.isRequired,
-  }).isRequired,
   show: PropTypes.bool.isRequired,
-  eventTracking: PropTypes.shape({
-    sendMB: PropTypes.func.isRequired,
-  }),
 }
+
+export default ShareProjectModal

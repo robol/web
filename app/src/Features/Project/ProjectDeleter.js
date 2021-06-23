@@ -15,6 +15,7 @@ const DocstoreManager = require('../Docstore/DocstoreManager')
 const EditorRealTimeController = require('../Editor/EditorRealTimeController')
 const HistoryManager = require('../History/HistoryManager')
 const FilestoreHandler = require('../FileStore/FileStoreHandler')
+const TpdsUpdateSender = require('../ThirdPartyDataStore/TpdsUpdateSender')
 const moment = require('moment')
 const { promiseMapWithLimit } = require('../../util/promises')
 
@@ -111,7 +112,7 @@ async function restoreProject(projectId) {
 
 async function archiveProject(projectId, userId) {
   try {
-    let project = await Project.findOne({ _id: projectId }).exec()
+    const project = await Project.findOne({ _id: projectId }).exec()
     if (!project) {
       throw new Errors.NotFoundError('project not found')
     }
@@ -133,7 +134,7 @@ async function archiveProject(projectId, userId) {
 
 async function unarchiveProject(projectId, userId) {
   try {
-    let project = await Project.findOne({ _id: projectId }).exec()
+    const project = await Project.findOne({ _id: projectId }).exec()
     if (!project) {
       throw new Errors.NotFoundError('project not found')
     }
@@ -156,7 +157,7 @@ async function unarchiveProject(projectId, userId) {
 
 async function trashProject(projectId, userId) {
   try {
-    let project = await Project.findOne({ _id: projectId }).exec()
+    const project = await Project.findOne({ _id: projectId }).exec()
     if (!project) {
       throw new Errors.NotFoundError('project not found')
     }
@@ -182,7 +183,7 @@ async function trashProject(projectId, userId) {
 
 async function untrashProject(projectId, userId) {
   try {
-    let project = await Project.findOne({ _id: projectId }).exec()
+    const project = await Project.findOne({ _id: projectId }).exec()
     if (!project) {
       throw new Errors.NotFoundError('project not found')
     }
@@ -279,7 +280,7 @@ async function deleteProject(projectId, options = {}) {
 
 async function undeleteProject(projectId, options = {}) {
   projectId = ObjectId(projectId)
-  let deletedProject = await DeletedProject.findOne({
+  const deletedProject = await DeletedProject.findOne({
     'deleterData.deletedProjectId': projectId,
   }).exec()
 
@@ -291,7 +292,7 @@ async function undeleteProject(projectId, options = {}) {
     throw new Errors.NotFoundError('project_too_old_to_restore')
   }
 
-  let restored = new Project(deletedProject.project)
+  const restored = new Project(deletedProject.project)
 
   if (options.userId) {
     restored.owner_ref = options.userId
@@ -369,6 +370,9 @@ async function expireDeletedProject(projectId) {
         historyId
       ),
       FilestoreHandler.promises.deleteProject(deletedProject.project._id),
+      TpdsUpdateSender.promises.deleteProject({
+        project_id: deletedProject.project._id,
+      }),
       hardDeleteDeletedFiles(deletedProject.project._id),
     ])
 

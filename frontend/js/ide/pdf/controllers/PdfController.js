@@ -5,6 +5,12 @@ import PreviewPane from '../../../features/preview/components/preview-pane'
 import { react2angular } from 'react2angular'
 import { rootContext } from '../../../shared/context/root-context'
 import 'ace/ace'
+import getMeta from '../../../utils/meta'
+import {
+  waitForServiceWorker,
+  unregisterServiceWorker,
+} from '../../pdfng/directives/serviceWorkerManager'
+import { trackPdfDownload } from './PdfJsMetrics'
 
 const AUTO_COMPILE_MAX_WAIT = 5000
 // We add a 1 second debounce to sending user changes to server if they aren't
@@ -269,6 +275,12 @@ App.controller(
       }
     })
 
+    const serviceWorker = getMeta('ol-enablePdfCaching')
+      ? waitForServiceWorker()
+      : Promise.resolve()
+
+    ide.$scope.$on('service-worker:unregister', unregisterServiceWorker)
+
     function sendCompileRequest(options) {
       if (options == null) {
         options = {}
@@ -277,6 +289,9 @@ App.controller(
       const params = {}
       if (options.isAutoCompileOnLoad || options.isAutoCompileOnChange) {
         params.auto_compile = true
+      }
+      if (getMeta('ol-enablePdfCaching')) {
+        params.enable_pdf_caching = true
       }
       // if the previous run was a check, clear the error logs
       if ($scope.check) {
@@ -306,18 +321,20 @@ App.controller(
         checkType = 'silent'
       }
 
-      return $http.post(
-        url,
-        {
-          rootDoc_id: options.rootDocOverride_id || null,
-          draft: $scope.draft,
-          check: checkType,
-          // use incremental compile for all users but revert to a full
-          // compile if there is a server error
-          incrementalCompilesEnabled: !$scope.pdf.error,
-          _csrf: window.csrfToken,
-        },
-        { params }
+      return serviceWorker.then(() =>
+        $http.post(
+          url,
+          {
+            rootDoc_id: options.rootDocOverride_id || null,
+            draft: $scope.draft,
+            check: checkType,
+            // use incremental compile for all users but revert to a full
+            // compile if there is a server error
+            incrementalCompilesEnabled: !$scope.pdf.error,
+            _csrf: window.csrfToken,
+          },
+          { params }
+        )
       )
     }
 
@@ -329,7 +346,9 @@ App.controller(
       }
     }
 
-    function parseCompileResponse(response) {
+    function noop() {}
+
+    function parseCompileResponse(response, compileTimeClientE2E) {
       // keep last url
       const lastPdfUrl = $scope.pdf.url
       const { pdfDownloadDomain } = response
@@ -338,6 +357,8 @@ App.controller(
       $scope.pdf.timedout = false
       $scope.pdf.failure = false
       $scope.pdf.url = null
+      $scope.pdf.updateConsumedBandwidth = noop
+      $scope.pdf.firstRenderDone = noop
       $scope.pdf.clsiMaintenance = false
       $scope.pdf.tooRecentlyCompiled = false
       $scope.pdf.renderingError = false
@@ -384,8 +405,27 @@ App.controller(
           pdfDownloadDomain,
           fileByPath['output.pdf'].url
         )
+
+        if (window.location.search.includes('verify_chunks=true')) {
+          // Instruct the serviceWorker to verify composed ranges.
+          qs.verify_chunks = 'true'
+        }
+        if (getMeta('ol-enablePdfCaching')) {
+          // Tag traffic that uses the pdf caching logic.
+          qs.enable_pdf_caching = 'true'
+        }
+
         // convert the qs hash into a query string and append it
         $scope.pdf.url += createQueryString(qs)
+
+        if (getMeta('ol-trackPdfDownload')) {
+          const { firstRenderDone, updateConsumedBandwidth } = trackPdfDownload(
+            response,
+            compileTimeClientE2E
+          )
+          $scope.pdf.firstRenderDone = firstRenderDone
+          $scope.pdf.updateConsumedBandwidth = updateConsumedBandwidth
+        }
 
         // Save all downloads as files
         qs.popupDownload = true
@@ -408,6 +448,7 @@ App.controller(
             'editor-click-feature',
             'compile-timeout'
           )
+          eventTracking.sendMB('compile-timeout-paywall-prompt')
         }
       } else if (response.status === 'terminated') {
         $scope.pdf.view = 'errors'
@@ -488,6 +529,7 @@ App.controller(
           $scope.pdf.rateLimited ? { rateLimited: true } : null,
           $scope.pdf.compileInProgress ? { compileInProgress: true } : null,
           $scope.pdf.timedout ? { timedout: true } : null,
+          $scope.pdf.projectTooLarge ? { projectTooLarge: true } : null,
           $scope.pdf.autoCompileDisabled ? { autoCompileDisabled: true } : null
         )
 
@@ -565,10 +607,10 @@ App.controller(
       }
 
       function accumulateResults(newEntries) {
-        for (let key of ['all', 'errors', 'warnings', 'typesetting']) {
+        for (const key of ['all', 'errors', 'warnings', 'typesetting']) {
           if (newEntries[key]) {
             if (newEntries.type != null) {
-              for (let entry of newEntries[key]) {
+              for (const entry of newEntries[key]) {
                 entry.type = newEntries.type
               }
             }
@@ -590,7 +632,7 @@ App.controller(
       function processChkTex(log) {
         const errors = []
         const warnings = []
-        for (let line of log.split('\n')) {
+        for (const line of log.split('\n')) {
           var m
           if ((m = line.match(/^(\S+):(\d+):(\d+): (Error|Warning): (.*)/))) {
             const result = {
@@ -731,7 +773,7 @@ App.controller(
       if (doc == null) {
         return null
       }
-      for (let line of doc.split('\n')) {
+      for (const line of doc.split('\n')) {
         if (/^[^%]*\\documentclass/.test(line)) {
           return ide.editorManager.getCurrentDocId()
         }
@@ -785,12 +827,14 @@ App.controller(
 
       options.rootDocOverride_id = getRootDocOverrideId()
 
+      const t0 = performance.now()
       sendCompileRequest(options)
         .then(function (response) {
           const { data } = response
+          const compileTimeClientE2E = performance.now() - t0
           $scope.pdf.view = 'pdf'
           $scope.pdf.compiling = false
-          parseCompileResponse(data)
+          parseCompileResponse(data, compileTimeClientE2E)
         })
         .catch(function (response) {
           const { status } = response

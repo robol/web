@@ -10,9 +10,10 @@ const ReferalFeatures = require('../Referal/ReferalFeatures')
 const V1SubscriptionManager = require('./V1SubscriptionManager')
 const InstitutionsFeatures = require('../Institutions/InstitutionsFeatures')
 const UserGetter = require('../User/UserGetter')
+const AnalyticsManager = require('../Analytics/AnalyticsManager')
 
 const FeaturesUpdater = {
-  refreshFeatures(userId, callback = () => {}) {
+  refreshFeatures(userId, reason, callback = () => {}) {
     UserGetter.getUser(userId, { _id: 1, features: 1 }, (err, user) => {
       if (err) {
         return callback(err)
@@ -23,6 +24,16 @@ const FeaturesUpdater = {
           return callback(error)
         }
         logger.log({ userId, features }, 'updating user features')
+
+        const matchedFeatureSet = FeaturesUpdater._getMatchedFeatureSet(
+          features
+        )
+        AnalyticsManager.setUserProperty(
+          userId,
+          'feature-set',
+          matchedFeatureSet
+        )
+
         UserFeaturesUpdater.updateFeatures(
           userId,
           features,
@@ -33,13 +44,16 @@ const FeaturesUpdater = {
             if (oldFeatures.dropbox === true && features.dropbox === false) {
               logger.log({ userId }, '[FeaturesUpdater] must unlink dropbox')
               const Modules = require('../../infrastructure/Modules')
-              Modules.hooks.fire('removeDropbox', userId, err => {
+              Modules.hooks.fire('removeDropbox', userId, reason, err => {
                 if (err) {
                   logger.error(err)
                 }
+
+                return callback(null, newFeatures, featuresChanged)
               })
+            } else {
+              return callback(null, newFeatures, featuresChanged)
             }
-            return callback(null, newFeatures, featuresChanged)
           }
         )
       })
@@ -139,8 +153,8 @@ const FeaturesUpdater = {
       ) {
         return callback(null, {})
       }
-      let activeFeaturesOverrides = []
-      for (let featuresOverride of user.featuresOverrides) {
+      const activeFeaturesOverrides = []
+      for (const featuresOverride of user.featuresOverrides) {
         if (
           !featuresOverride.expiresAt ||
           featuresOverride.expiresAt > new Date()
@@ -181,7 +195,7 @@ const FeaturesUpdater = {
 
   _mergeFeatures(featuresA, featuresB) {
     const features = Object.assign({}, featuresA)
-    for (let key in featuresB) {
+    for (const key in featuresB) {
       // Special merging logic for non-boolean features
       if (key === 'compileGroup') {
         if (
@@ -239,7 +253,7 @@ const FeaturesUpdater = {
       return {}
     }
 
-    let mismatchReasons = {}
+    const mismatchReasons = {}
     const featureKeys = [
       ...new Set([
         ...Object.keys(currentFeatures),
@@ -294,16 +308,26 @@ const FeaturesUpdater = {
           { v1UserId, userId: user._id },
           '[AccountSync] updating user subscription and features'
         )
-        return FeaturesUpdater.refreshFeatures(user._id, callback)
+        return FeaturesUpdater.refreshFeatures(user._id, 'sync-v1', callback)
       }
     )
   },
+
+  _getMatchedFeatureSet(features) {
+    for (const [name, featureSet] of Object.entries(Settings.features)) {
+      if (_.isEqual(features, featureSet)) {
+        return name
+      }
+    }
+    return 'mixed'
+  },
 }
 
-const refreshFeaturesPromise = userId =>
+const refreshFeaturesPromise = (userId, reason) =>
   new Promise(function (resolve, reject) {
     FeaturesUpdater.refreshFeatures(
       userId,
+      reason,
       (error, features, featuresChanged) => {
         if (error) {
           reject(error)

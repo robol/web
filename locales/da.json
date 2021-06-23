@@ -1,4 +1,6 @@
 {
+  "chat_error": "Kunne ikke indlæse chatbeskeder, prøv venligst igen.",
+  "reconnect": "Prøv igen",
   "logs_pane_info_message": "Vi tester en ny rude til logge",
   "logs_pane_info_message_popup": "Vi tester en ny rude til logge. Klik her for at fortælle os din mening",
   "github_symlink_error": "Dit github repository indeholder symbolske lænkefiler, som ikke på nuværende tidpunkt er understøttet af Overleaf. Du må fjerne de filer, og derefter prøve igen.",
@@ -13,7 +15,7 @@
   "github_file_name_error": "Dit projekt har fil(er) med ugyldigt filnavn. Kig dit repository igennem, og prøv igen.",
   "raw_logs_description": "Rå logger fra LaTeX–kompileringsprogrammet",
   "raw_logs": "Rå logger",
-  "first_error_popup_label": "Dette projekt havde fejl. Det er er den frøste.",
+  "first_error_popup_label": "Dette projekt havde fejl. Det her er den frøste.",
   "dismiss_error_popup": "Afvis første fejlmeddelelse",
   "go_to_error_location": "Gå til fejlens placering",
   "view_all_errors": "Se alle fejl",
@@ -497,7 +499,7 @@
   "log_hint_extra_info": "Lær mere",
   "log_hint_feedback_label": "Var dette til hjælp?",
   "log_hint_feedback_gratitude": "Tak for din tilbagemelding!",
-  "recompile_pdf": "Omkompilér PDF'en",
+  "recompile_pdf": "Omkompilér PDF’en",
   "about_paulo_reis": "er en front-end software udvikler and forsker i bruger oplevelse, bosiddende i Aveiro, Portugal. Paulo har en PhD i bruger oplevelse og er passioneret i at designe teknologi til menneskers brug - enten via koncept eller testing/validering i design eller implementation.",
   "login_or_password_wrong_try_again": "Dit login eller password er forkert. Prøv venligst igen",
   "manage_beta_program_membership": "Administrer Beta Program medlemsskab",
@@ -887,7 +889,6 @@
   "sl_used_over_x_people_at": "__appName__ bliver brugt af mere end __numberOfUsers__ studerende og akademikere på:",
   "collaboration": "Samarbejde",
   "work_on_single_version": "Arbejd sammen på en enkelt version",
-  "view_collab_edits": "Vis samarbejdspartners ændringer ",
   "ease_of_use": "Nem af bruge",
   "no_complicated_latex_install": "Ingen kompliceret LaTeX installation",
   "all_packages_and_templates": "Alle de pakker og <0>__templatesLink__</0> du har brug for",
@@ -914,7 +915,6 @@
   "admin": "admin",
   "subscribe": "Tilmeld",
   "update_billing_details": "Opdatere betalingsdetaljer",
-  "thank_you": "Tak",
   "group_admin": "Gruppe admin",
   "all_templates": "Alle skabeloner",
   "your_settings": "Dine indstillinger",
@@ -1180,5 +1180,6 @@
   "link_to_github": "Link til din GitHub konto",
   "github_integration": "Github integration",
   "github_is_premium": "GitHub synkronisering er en betalt funktion",
-  "please_change_primary_to_remove": "Du må ændre din primære e–mailadresse for at kunne fjerne"
+  "please_change_primary_to_remove": "Du må ændre din primære e–mailadresse for at kunne fjerne",
+  "thank_you": "Tak!"
 }

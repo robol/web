@@ -44,7 +44,9 @@ App.controller(
       // prevent race conditions)
       const documentTearDown =
         $scope.document != null ? $scope.document.destroy() : Promise.resolve()
-
+      // Keep track of whether the pdf has loaded (this allows rescale events to
+      // be ignored until we are ready to render the pdf).
+      $scope.isLoaded = false
       return documentTearDown.then(() => {
         $scope.loadCount = $scope.loadCount != null ? $scope.loadCount + 1 : 1
         // TODO need a proper url manipulation library to add to query string
@@ -52,6 +54,11 @@ App.controller(
         // add 'pdfng=true' to show that we are using the angular pdfjs viewer
         const queryStringExists = /\?/.test(url)
         url = url + (!queryStringExists ? '?' : '&') + 'pdfng=true'
+
+        // Take references as these must be invoked for this very URL
+        const firstRenderDone = $scope.firstRenderDone
+        const updateConsumedBandwidth = $scope.updateConsumedBandwidth
+
         // for isolated compiles, load the pdf on-demand because nobody will overwrite it
         const onDemandLoading = true
         $scope.document = new PDFRenderer(url, {
@@ -63,11 +70,13 @@ App.controller(
             return $scope.$apply()
           },
           progressCallback(progress) {
+            updateConsumedBandwidth(progress.loaded)
             return $scope.$emit('progress', progress)
           },
           loadedCallback() {
             return $scope.$emit('loaded')
           },
+          firstRenderDone,
           errorCallback(error) {
             // MissingPDFException is "expected" as the pdf file can be on a
             // CLSI server that has been cycled out.
@@ -101,6 +110,8 @@ App.controller(
             ]
             // console.log 'resolved q.all, page size is', result
             $scope.$emit('loaded')
+            // we can now render the document and handle rescale events
+            $scope.isLoaded = true
             return ($scope.numPages = result.numPages)
           })
           .catch(function (error) {
@@ -224,6 +235,7 @@ App.controller(
           let ref
           return ([topPageIdx, topPage] = Array.from((ref = [i, page]))), ref
         }
+        return false
       })
       if (visible && topPage.element != null) {
         // console.log 'found it', topPageIdx
@@ -323,6 +335,8 @@ export default App.directive('pdfViewer', ($q, $timeout, pdfSpinner) => ({
   controllerAs: 'ctrl',
   scope: {
     pdfSrc: '=',
+    firstRenderDone: '=',
+    updateConsumedBandwidth: '=',
     highlights: '=',
     position: '=',
     scale: '=',
@@ -389,6 +403,9 @@ export default App.directive('pdfViewer', ($q, $timeout, pdfSpinner) => ({
     let rescaleTimer = null
     const queueRescale = function (scale) {
       // console.log 'call to queueRescale'
+      if (!scope.isLoaded) {
+        return // ignore any requests to rescale before the document is loaded
+      }
       if (rescaleTimer != null || layoutTimer != null || elementTimer != null) {
         return
       }
@@ -829,9 +846,9 @@ export default App.directive('pdfViewer', ($q, $timeout, pdfSpinner) => ({
 }))
 
 function __range__(left, right, inclusive) {
-  let range = []
-  let ascending = left < right
-  let end = !inclusive ? right : ascending ? right + 1 : right - 1
+  const range = []
+  const ascending = left < right
+  const end = !inclusive ? right : ascending ? right + 1 : right - 1
   for (let i = left; ascending ? i < end : i > end; ascending ? i++ : i--) {
     range.push(i)
   }

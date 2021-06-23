@@ -942,7 +942,6 @@
   "sl_used_over_x_people_at": "__appName__ används av över __numberOfUsers__ studenter och akademiker på:",
   "collaboration": "Samarbete",
   "work_on_single_version": "Arbeta tillsammans på en enda version",
-  "view_collab_edits": "Visa samarbetspartners förändringar ",
   "ease_of_use": " Användbarhet",
   "no_complicated_latex_install": "Ingen komplicerad LaTeX installation",
   "all_packages_and_templates": "Alla paket och <0>__templatesLink__</0> du behöver",
@@ -969,7 +968,6 @@
   "admin": "admin",
   "subscribe": "Prenumerera",
   "update_billing_details": "Uppdatera betalningsinformation",
-  "thank_you": "Tack!",
   "group_admin": "Gruppadministratör",
   "all_templates": "Alla mallar",
   "your_settings": "Dina inställningar",
@@ -1245,5 +1243,6 @@
   "please_change_primary_to_remove": "Vänligen ändra din primära e-post-adress för att ta bort",
   "please_reconfirm_institutional_email": "Vänligen bekräfta din institutionella e-post-adress eller <0>ta bort den</0> från ditt konto.",
   "need_to_add_new_primary_before_remove": "Du måste lägga till en ny primär e-post-adress innan du kan ta bort den här.",
-  "are_you_still_at": "Är du fortfarande vid <0>__institutionName__</0>?"
+  "are_you_still_at": "Är du fortfarande vid <0>__institutionName__</0>?",
+  "thank_you": "Tack!"
 }

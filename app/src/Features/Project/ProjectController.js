@@ -37,6 +37,7 @@ const BrandVariationsHandler = require('../BrandVariations/BrandVariationsHandle
 const UserController = require('../User/UserController')
 const AnalyticsManager = require('../Analytics/AnalyticsManager')
 const Modules = require('../../infrastructure/Modules')
+const SplitTestHandler = require('../SplitTests/SplitTestHandler')
 const { getNewLogsUIVariantForUser } = require('../Helpers/NewLogsUI')
 
 const _ssoAvailable = (affiliation, session, linkedInstitutionIds) => {
@@ -583,18 +584,7 @@ const ProjectController = {
             hasSubscription: results.hasSubscription,
             reconfirmedViaSAML,
             zipFileSizeLimit: Settings.maxUploadSize,
-          }
-
-          if (
-            Settings.algolia &&
-            Settings.algolia.app_id &&
-            Settings.algolia.read_only_api_key
-          ) {
-            viewModel.showUserDetailsArea = true
-            viewModel.algolia_api_key = Settings.algolia.read_only_api_key
-            viewModel.algolia_app_id = Settings.algolia.app_id
-          } else {
-            viewModel.showUserDetailsArea = false
+            isOverleaf: !!Settings.overleaf,
           }
 
           const paidUser =
@@ -720,6 +710,21 @@ const ProjectController = {
         flushToTpds: cb => {
           TpdsProjectFlusher.flushProjectToTpdsIfNeeded(projectId, cb)
         },
+        pdfCachingFeatureFlag(cb) {
+          if (!Settings.enablePdfCaching) return cb(null, '')
+          if (!userId) return cb(null, 'enable-caching-only')
+          SplitTestHandler.getTestSegmentation(
+            userId,
+            'pdf_caching_full',
+            (err, segmentation) => {
+              if (err) {
+                // Do not fail loading the editor.
+                return cb(null, '')
+              }
+              cb(null, (segmentation && segmentation.variant) || '')
+            }
+          )
+        },
       },
       (err, results) => {
         if (err != null) {
@@ -730,6 +735,7 @@ const ProjectController = {
         const { user } = results
         const { subscription } = results
         const { brandVariation } = results
+        const { pdfCachingFeatureFlag } = results
 
         const anonRequestToken = TokenAccessHandler.getRequestToken(
           req,
@@ -739,10 +745,6 @@ const ProjectController = {
         const allowedImageNames = ProjectHelper.getAllowedImagesForUser(
           sessionUser
         )
-        const wantsOldShareModalUI =
-          req.query && req.query.new_share_modal_ui === 'false'
-        const wantsOldGithubSyncUI =
-          req.query && req.query.new_github_sync_ui === 'false'
 
         AuthorizationManager.getPrivilegeLevelForProject(
           userId,
@@ -796,9 +798,30 @@ const ProjectController = {
             }
 
             const logsUIVariant = getNewLogsUIVariantForUser(user)
-            const userShouldSeeNewLogsUI = logsUIVariant.newLogsUI
-            const wantsOldLogsUI =
-              req.query && req.query.new_logs_ui === 'false'
+
+            function shouldDisplayFeature(name, variantFlag) {
+              if (req.query && req.query[name]) {
+                return req.query[name] === 'true'
+              } else {
+                return variantFlag === true
+              }
+            }
+
+            function partOfPdfCachingRollout(flag) {
+              if (!Settings.enablePdfCaching) {
+                // The feature is disabled globally.
+                return false
+              }
+              const canSeeFeaturePreview = pdfCachingFeatureFlag.includes(flag)
+              if (!canSeeFeaturePreview) {
+                // The user is not in the target group.
+                return false
+              }
+              // Optionally let the user opt-out.
+              // The will opt-out of both caching and metrics collection,
+              //  as if this editing session never happened.
+              return shouldDisplayFeature('enable_pdf_caching', true)
+            }
 
             res.render('project/editor', {
               title: project.name,
@@ -833,7 +856,6 @@ const ProjectController = {
                 overallTheme: user.ace.overallTheme,
               },
               privilegeLevel,
-              chatUrl: Settings.apis.chat.url,
               anonymous,
               anonymousAccessToken: anonymous ? anonRequestToken : null,
               isTokenMember,
@@ -854,14 +876,26 @@ const ProjectController = {
               gitBridgePublicBaseUrl: Settings.gitBridgePublicBaseUrl,
               wsUrl,
               showSupport: Features.hasFeature('support'),
-              showNewLogsUI: userShouldSeeNewLogsUI && !wantsOldLogsUI,
+              showNewLogsUI: shouldDisplayFeature(
+                'new_logs_ui',
+                logsUIVariant.newLogsUI
+              ),
               logsUISubvariant: logsUIVariant.subvariant,
-              showNewNavigationUI:
-                req.query && req.query.new_navigation_ui === 'true',
-              showReactShareModal: !wantsOldShareModalUI,
-              showReactGithubSync: !wantsOldGithubSyncUI && user.alphaProgram,
-              showNewBinaryFileUI:
-                req.query && req.query.new_binary_file === 'true',
+              showNewNavigationUI: shouldDisplayFeature(
+                'new_navigation_ui',
+                user.alphaProgram
+              ),
+              showNewFileViewUI: shouldDisplayFeature(
+                'new_file_view',
+                user.alphaProgram
+              ),
+              showSymbolPalette: shouldDisplayFeature(
+                'symbol_palette',
+                user.alphaProgram || user.betaProgram
+              ),
+              trackPdfDownload: partOfPdfCachingRollout('collect-metrics'),
+              enablePdfCaching: partOfPdfCachingRollout('enable-caching'),
+              resetServiceWorker: Boolean(Settings.resetServiceWorker),
             })
             timer.done()
           }
@@ -1024,7 +1058,7 @@ const ProjectController = {
       affiliations = []
     }
     const portalTemplates = []
-    for (let aff of affiliations) {
+    for (const aff of affiliations) {
       if (
         aff.portal &&
         aff.portal.slug &&
@@ -1071,7 +1105,7 @@ function generateThemeList() {
     Path.join(__dirname, '/../../../../node_modules/ace-builds/src-noconflict')
   )
   const result = []
-  for (let file of files) {
+  for (const file of files) {
     if (file.slice(-2) === 'js' && /^theme-/.test(file)) {
       const cleanName = file.slice(0, -3).slice(6)
       result.push(THEME_LIST.push(cleanName))

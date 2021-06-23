@@ -604,7 +604,6 @@
   "sl_used_over_x_people_at": "__numberOfUsers__ 이상의 학생과 교육기관이 __appName__(을)를 사용하고 있습니다.",
   "collaboration": "콜라보레이션",
   "work_on_single_version": "단일 버전으로 함께 작업하기",
-  "view_collab_edits": "콜라보레이터 편집 보기 ",
   "ease_of_use": " 쉬운 사용법",
   "no_complicated_latex_install": "LaTex 설치 필요없음",
   "all_packages_and_templates": "전체 패키지와 <0>__templatesLink__</0>",
@@ -631,7 +630,6 @@
   "admin": "관리",
   "subscribe": "구독",
   "update_billing_details": "청구서 세부사항 업데이트",
-  "thank_you": "감사합니다",
   "group_admin": "그룹 관리",
   "all_templates": "모든 템플릿",
   "your_settings": "나의 설정",
@@ -896,5 +894,6 @@
   "unlink_github": "GitHub 계정 연결끊기",
   "link_to_github": "GitHub 계정에 연결하기",
   "github_integration": "GitHub 통합",
-  "github_is_premium": "GitHub 동기화는 프리미엄 기능입니다"
+  "github_is_premium": "GitHub 동기화는 프리미엄 기능입니다",
+  "thank_you": "감사합니다"
 }

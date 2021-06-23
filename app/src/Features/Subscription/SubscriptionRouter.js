@@ -38,7 +38,7 @@ module.exports = {
     webRouter.get(
       '/user/subscription/thank-you',
       AuthenticationController.requireLogin(),
-      SubscriptionController.successful_subscription
+      SubscriptionController.successfulSubscription
     )
 
     webRouter.get(
@@ -73,6 +73,9 @@ module.exports = {
     // recurly callback
     publicApiRouter.post(
       '/user/subscription/callback',
+      AuthenticationController.requireBasicAuth({
+        [Settings.apis.recurly.webhookUser]: Settings.apis.recurly.webhookPass,
+      }),
       SubscriptionController.recurlyNotificationParser,
       SubscriptionController.recurlyCallback
     )
@@ -136,7 +139,7 @@ module.exports = {
     // Currently used in acceptance tests only, as a way to trigger the syncing logic
     return publicApiRouter.post(
       '/user/:user_id/features/sync',
-      AuthenticationController.httpAuth,
+      AuthenticationController.requirePrivateApiAuth(),
       SubscriptionController.refreshUserFeatures
     )
   },

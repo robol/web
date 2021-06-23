@@ -51,7 +51,7 @@ export default App.controller(
         ) {
           return UserTypes.MEMBER
         }
-        for (let member of Array.from(project.members)) {
+        for (const member of Array.from(project.members)) {
           if (member._id === user_id) {
             return UserTypes.MEMBER
           }
@@ -106,7 +106,7 @@ export default App.controller(
 
     window.addEventListener('beforeunload', function () {
       const collapsedStates = {}
-      for (let doc in $scope.reviewPanel.overview.docsCollapsedState) {
+      for (const doc in $scope.reviewPanel.overview.docsCollapsedState) {
         const state = $scope.reviewPanel.overview.docsCollapsedState[doc]
         if (state) {
           collapsedStates[doc] = state
@@ -159,7 +159,7 @@ export default App.controller(
       ) {
         return (() => {
           const result = []
-          for (let member of Array.from(members)) {
+          for (const member of Array.from(members)) {
             if (member.privileges === 'readAndWrite') {
               if ($scope.reviewPanel.trackChangesState[member._id] == null) {
                 // An added member will have track changes enabled if track changes is on for everyone
@@ -347,7 +347,7 @@ export default App.controller(
         const entries =
           $scope.reviewPanel.entries[$scope.editor.open_doc_id] || {}
         const permEntries = {}
-        for (let entry in entries) {
+        for (const entry in entries) {
           const entryData = entries[entry]
           if (!['add-comment', 'bulk-actions'].includes(entry)) {
             permEntries[entry] = entryData
@@ -374,7 +374,7 @@ export default App.controller(
           const docs = response.data
           return (() => {
             const result = []
-            for (let doc of Array.from(docs)) {
+            for (const doc of Array.from(docs)) {
               if (
                 $scope.reviewPanel.overview.docsCollapsedState[doc.id] == null
               ) {
@@ -485,7 +485,7 @@ export default App.controller(
         ensureThreadsAreLoaded()
       }
 
-      for (let comment of Array.from(rangesTracker.comments)) {
+      for (const comment of Array.from(rangesTracker.comments)) {
         var new_comment
         changed = true
         delete delete_changes[comment.id]
@@ -515,7 +515,7 @@ export default App.controller(
         }
       }
 
-      for (let change_id in delete_changes) {
+      for (const change_id in delete_changes) {
         const _ = delete_changes[change_id]
         changed = true
         delete entries[change_id]
@@ -567,7 +567,7 @@ export default App.controller(
           }
         }
 
-        for (let id in entries) {
+        for (const id in entries) {
           const entry = entries[id]
           let isChangeEntryAndWithinSelection = false
           if (
@@ -604,7 +604,7 @@ export default App.controller(
           }
 
           if (isChangeEntryAndWithinSelection) {
-            for (let entry_id of Array.from(entry.entry_ids)) {
+            for (const entry_id of Array.from(entry.entry_ids)) {
               $scope.reviewPanel.selectedEntryIds.push(entry_id)
             }
             $scope.reviewPanel.nVisibleSelectedChanges++
@@ -618,14 +618,14 @@ export default App.controller(
 
     $scope.acceptChanges = function (change_ids) {
       _doAcceptChanges(change_ids)
-      return eventTracking.sendMB('rp-changes-accepted', {
+      eventTracking.sendMB('rp-changes-accepted', {
         view: $scope.ui.reviewPanelOpen ? $scope.reviewPanel.subView : 'mini',
       })
     }
 
     $scope.rejectChanges = function (change_ids) {
       _doRejectChanges(change_ids)
-      return eventTracking.sendMB('rp-changes-rejected', {
+      eventTracking.sendMB('rp-changes-rejected', {
         view: $scope.ui.reviewPanelOpen ? $scope.reviewPanel.subView : 'mini',
       })
     }
@@ -643,7 +643,7 @@ export default App.controller(
 
     const bulkAccept = function () {
       _doAcceptChanges($scope.reviewPanel.selectedEntryIds.slice())
-      return eventTracking.sendMB('rp-bulk-accept', {
+      eventTracking.sendMB('rp-bulk-accept', {
         view: $scope.ui.reviewPanelOpen ? $scope.reviewPanel.subView : 'mini',
         nEntries: $scope.reviewPanel.nVisibleSelectedChanges,
       })
@@ -651,7 +651,7 @@ export default App.controller(
 
     const bulkReject = function () {
       _doRejectChanges($scope.reviewPanel.selectedEntryIds.slice())
-      return eventTracking.sendMB('rp-bulk-reject', {
+      eventTracking.sendMB('rp-bulk-reject', {
         view: $scope.ui.reviewPanelOpen ? $scope.reviewPanel.subView : 'mini',
         nEntries: $scope.reviewPanel.nVisibleSelectedChanges,
       })
@@ -740,7 +740,7 @@ export default App.controller(
         )
       $scope.$broadcast('editor:clearSelection')
       $timeout(() => $scope.$broadcast('review-panel:layout'))
-      return eventTracking.sendMB('rp-new-comment', { size: content.length })
+      eventTracking.sendMB('rp-new-comment', { size: content.length })
     }
 
     $scope.cancelNewComment = entry =>
@@ -777,7 +777,7 @@ export default App.controller(
       entry.replyContent = ''
       entry.replying = false
       $timeout(() => $scope.$broadcast('review-panel:layout'))
-      return eventTracking.sendMB('rp-comment-reply', trackingMetadata)
+      eventTracking.sendMB('rp-comment-reply', trackingMetadata)
     }
 
     $scope.cancelReply = function (entry) {
@@ -793,7 +793,7 @@ export default App.controller(
         { _csrf: window.csrfToken }
       )
       _onCommentResolved(entry.thread_id, ide.$scope.user)
-      return eventTracking.sendMB('rp-comment-resolve', {
+      eventTracking.sendMB('rp-comment-resolve', {
         view: $scope.ui.reviewPanelOpen ? $scope.reviewPanel.subView : 'mini',
       })
     }
@@ -803,7 +803,7 @@ export default App.controller(
       $http.post(`/project/${$scope.project_id}/thread/${thread_id}/reopen`, {
         _csrf: window.csrfToken,
       })
-      return eventTracking.sendMB('rp-comment-reopen')
+      eventTracking.sendMB('rp-comment-reopen')
     }
 
     var _onCommentResolved = function (thread_id, user) {
@@ -841,7 +841,7 @@ export default App.controller(
       if (thread == null) {
         return
       }
-      for (let message of Array.from(thread.messages)) {
+      for (const message of Array.from(thread.messages)) {
         if (message.id === comment_id) {
           message.content = content
         }
@@ -867,7 +867,7 @@ export default App.controller(
           'X-CSRF-Token': window.csrfToken,
         },
       })
-      return eventTracking.sendMB('rp-comment-delete')
+      eventTracking.sendMB('rp-comment-delete')
     }
 
     $scope.saveEdit = function (thread_id, comment) {
@@ -895,7 +895,7 @@ export default App.controller(
 
     $scope.setSubView = function (subView) {
       $scope.reviewPanel.subView = subView
-      return eventTracking.sendMB('rp-subview-change', { subView })
+      eventTracking.sendMB('rp-subview-change', { subView })
     }
 
     $scope.gotoEntry = (doc_id, entry) =>
@@ -917,6 +917,7 @@ export default App.controller(
         'editor-click-feature',
         'real-time-track-changes'
       )
+      eventTracking.sendMB('track-changes-paywall-prompt')
     }
 
     const _setUserTCState = function (userId, newValue, isLocal) {
@@ -955,7 +956,7 @@ export default App.controller(
       }
       $scope.reviewPanel.trackChangesOnForEveryone = newValue
       const { project } = $scope
-      for (let member of Array.from(project.members)) {
+      for (const member of Array.from(project.members)) {
         _setUserTCState(member._id, newValue, isLocal)
       }
       _setGuestsTCState(newValue, isLocal)
@@ -981,7 +982,7 @@ export default App.controller(
         data.on = true
       } else {
         data.on_for = {}
-        for (let userId in $scope.reviewPanel.trackChangesState) {
+        for (const userId in $scope.reviewPanel.trackChangesState) {
           const userState = $scope.reviewPanel.trackChangesState[userId]
           data.on_for[userId] = userState.value
         }
@@ -1001,7 +1002,7 @@ export default App.controller(
         const { project } = $scope
         $scope.reviewPanel.trackChangesOnForEveryone = false
         _setGuestsTCState(state.__guests__ === true)
-        for (let member of Array.from(project.members)) {
+        for (const member of Array.from(project.members)) {
           _setUserTCState(
             member._id,
             state[member._id] != null ? state[member._id] : false
@@ -1130,7 +1131,7 @@ export default App.controller(
           }
           return (() => {
             const result = []
-            for (let user of Array.from(users)) {
+            for (const user of Array.from(users)) {
               if (user.id != null) {
                 result.push(($scope.users[user.id] = formatUser(user)))
               } else {
@@ -1162,7 +1163,7 @@ export default App.controller(
           }
           for (thread_id in threads) {
             const thread = threads[thread_id]
-            for (let comment of Array.from(thread.messages)) {
+            for (const comment of Array.from(thread.messages)) {
               formatComment(comment)
             }
             if (thread.resolved_by_user != null) {
@@ -1224,11 +1225,11 @@ export default App.controller(
       }
     }
 
-    return ($scope.openTrackChangesUpgradeModal = () =>
+    $scope.openTrackChangesUpgradeModal = () =>
       $modal.open({
         templateUrl: 'trackChangesUpgradeModalTemplate',
         controller: 'TrackChangesUpgradeModalController',
         scope: $scope.$new(),
-      }))
+      })
   }
 )

@@ -8,7 +8,7 @@ const { promisify } = require('util')
 const fs = require('fs')
 const Path = require('path')
 
-let count = 0
+let count = settings.test.counterInit
 
 class User {
   constructor(options) {
@@ -154,7 +154,7 @@ class User {
 
   setFeatures(features, callback) {
     const update = {}
-    for (let key in features) {
+    for (const key in features) {
       const value = features[key]
       update[`features.${key}`] = value
     }

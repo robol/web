@@ -109,7 +109,6 @@ const ClsiManager = {
           return callback(
             OError.tag(err, 'CLSI compile failed', {
               submissionId,
-              clsiRequest,
               options,
             })
           )
@@ -257,11 +256,19 @@ const ClsiManager = {
                 projectId,
                 response && response.compile && response.compile.outputFiles
               )
+              const compile = (response && response.compile) || {}
+              const status = compile.status
+              const stats = compile.stats
+              const timings = compile.timings
+              const validationProblems = undefined
               callback(
                 null,
-                response && response.compile && response.compile.status,
+                status,
                 outputFiles,
-                clsiServerId
+                clsiServerId,
+                validationProblems,
+                stats,
+                timings
               )
             })
           }
@@ -497,6 +504,9 @@ const ClsiManager = {
         url: Url.parse(file.url).path, // the location of the file on the clsi, excluding the host part
         type: file.type,
         build: file.build,
+        contentId: file.contentId,
+        ranges: file.ranges,
+        size: file.size,
       })
     }
     return outputFiles
@@ -651,7 +661,7 @@ const ClsiManager = {
         )
       }
       const docs = {}
-      for (let doc of docUpdaterDocs || []) {
+      for (const doc of docUpdaterDocs || []) {
         const path = docPath[doc._id]
         docs[path] = doc
       }
@@ -814,6 +824,8 @@ const ClsiManager = {
           syncType: options.syncType,
           syncState: options.syncState,
           compileGroup: options.compileGroup,
+          enablePdfCaching:
+            (Settings.enablePdfCaching && options.enablePdfCaching) || false,
         },
         rootResourcePath,
         resources,

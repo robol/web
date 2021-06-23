@@ -11,6 +11,7 @@ const MODULES_PATH = path.join(__dirname, '/modules')
 
 // Generate a hash of entry points, including modules
 const entryPoints = {
+  serviceWorker: './frontend/js/serviceWorker.js',
   main: './frontend/js/main.js',
   ide: './frontend/js/ide.js',
   style: './frontend/stylesheets/style.less',
@@ -88,6 +89,17 @@ module.exports = {
               // loaded from a CDN - has cross-origin issues, by forcing it to not
               // be loaded from the CDN
               publicPath: '/',
+            },
+          },
+        ],
+      },
+      {
+        test: /serviceWorker.js$/,
+        use: [
+          {
+            loader: 'worker-loader',
+            options: {
+              name: 'serviceWorker.js',
             },
           },
         ],
@@ -242,11 +254,6 @@ module.exports = {
       // files are held in memory). This is needed because the server will read
       // this file (from disk) when building the script's url
       writeToFileEmit: true,
-    }),
-
-    // Silence react messages in the dev-tools console
-    new webpack.DefinePlugin({
-      __REACT_DEVTOOLS_GLOBAL_HOOK__: '({ isDisabled: true })',
     }),
 
     // Prevent moment from loading (very large) locale files that aren't used

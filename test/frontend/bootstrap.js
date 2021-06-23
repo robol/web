@@ -3,12 +3,15 @@ require('@babel/register')
 
 // Load JSDOM to mock the DOM in Node
 // Set pretendToBeVisual to enable requestAnimationFrame
-require('jsdom-global')(undefined, { pretendToBeVisual: true })
+require('jsdom-global')(undefined, {
+  pretendToBeVisual: true,
+  url: 'https://www.test-overleaf.com/',
+})
 
 const path = require('path')
 process.env.SHARELATEX_CONFIG = path.resolve(
   __dirname,
-  '../../config/settings.webpack.coffee'
+  '../../config/settings.webpack.js'
 )
 
 // Load sinon-chai assertions so expect(stubFn).to.have.been.calledWith('abc')
@@ -22,6 +25,38 @@ window.ExposedSettings = {
   appName: 'Overleaf',
   maxEntitiesPerProject: 10,
   maxUploadSize: 5 * 1024 * 1024,
+  siteUrl: 'https://www.dev-overleaf.com',
+  textExtensions: [
+    'tex',
+    'latex',
+    'sty',
+    'cls',
+    'bst',
+    'bib',
+    'bibtex',
+    'txt',
+    'tikz',
+    'mtx',
+    'rtex',
+    'md',
+    'asy',
+    'latexmkrc',
+    'lbx',
+    'bbx',
+    'cbx',
+    'm',
+    'lco',
+    'dtx',
+    'ins',
+    'ist',
+    'def',
+    'clo',
+    'ldf',
+    'rmd',
+    'lua',
+    'gv',
+    'mf',
+  ],
 }
 
 window.i18n = { currentLangCode: 'en' }

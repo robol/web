@@ -3,19 +3,12 @@ import PropTypes from 'prop-types'
 import { useTranslation } from 'react-i18next'
 import PreviewLogsPaneEntry from './preview-logs-pane-entry'
 import Icon from '../../../shared/components/icon'
-import { useApplicationContext } from '../../../shared/context/application-context'
 import { useEditorContext } from '../../../shared/context/editor-context'
-import { startFreeTrial } from '../../../main/account-upgrade'
+import StartFreeTrialButton from '../../../shared/components/start-free-trial-button'
 
 function PreviewError({ name }) {
-  const { isProjectOwner } = useEditorContext({
+  const { hasPremiumCompile, isProjectOwner } = useEditorContext({
     isProjectOwner: PropTypes.bool,
-  })
-  const {
-    exposedSettings: { enableSubscriptions },
-  } = useApplicationContext({
-    exposedSettings: PropTypes.shape({ enableSubscriptions: PropTypes.bool })
-      .isRequired,
   })
 
   const { t } = useTranslation()
@@ -64,6 +57,9 @@ function PreviewError({ name }) {
   } else if (name === 'autoCompileDisabled') {
     errorTitle = t('autocompile_disabled')
     errorContent = <>{t('autocompile_disabled_reason')}</>
+  } else if (name === 'projectTooLarge') {
+    errorTitle = t('project_too_large')
+    errorContent = <>{t('project_too_much_editable_text')}</>
   }
 
   return errorTitle ? (
@@ -74,7 +70,9 @@ function PreviewError({ name }) {
         entryAriaLabel={t('compile_error_entry_description')}
         level="error"
       />
-      {name === 'timedout' && enableSubscriptions ? (
+      {name === 'timedout' &&
+      window.ExposedSettings.enableSubscriptions &&
+      !hasPremiumCompile ? (
         <TimeoutUpgradePrompt isProjectOwner={isProjectOwner} />
       ) : null}
     </>
@@ -83,10 +81,6 @@ function PreviewError({ name }) {
 
 function TimeoutUpgradePrompt({ isProjectOwner }) {
   const { t } = useTranslation()
-
-  function handleStartFreeTrialClick() {
-    startFreeTrial('compile-timeout')
-  }
 
   const timeoutUpgradePromptContent = (
     <>
@@ -128,12 +122,11 @@ function TimeoutUpgradePrompt({ isProjectOwner }) {
       </div>
       {isProjectOwner ? (
         <p className="text-center">
-          <button
-            className="btn btn-success row-spaced-small"
-            onClick={handleStartFreeTrialClick}
-          >
-            {t('start_free_trial')}
-          </button>
+          <StartFreeTrialButton
+            source="compile-timeout"
+            buttonStyle="success"
+            classes={{ button: 'row-spaced-small' }}
+          />
         </p>
       ) : null}
     </>

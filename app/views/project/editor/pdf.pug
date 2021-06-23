@@ -255,7 +255,7 @@ div.full-size.pdf(ng-controller="PdfController")
 						ul.dropdown-menu.dropdown-menu-right
 							li(ng-repeat="file in pdf.outputFiles")
 								a(
-									href="{{file.url}}"
+									ng-href="{{file.url}}"
 									target="_blank"
 								) {{ file.name }}
 				a.btn.btn-info.btn-sm(href, ng-click="toggleRawLog()")
@@ -281,6 +281,8 @@ div.full-size.pdf(ng-controller="PdfController")
 				resize-on="layout:main:resize,layout:pdf:resize"
 				highlights="pdf.highlights"
 				position="pdf.position"
+				first-render-done="pdf.firstRenderDone"
+				update-consumed-bandwidth="pdf.updateConsumedBandwidth"
 				dbl-click-callback="syncToCode"
 			)
 			iframe(
@@ -392,7 +394,7 @@ div.full-size.pdf(ng-controller="PdfController")
 
 				.alert.alert-danger(ng-show="pdf.projectTooLarge")
 					strong #{translate("project_too_large")} 
-					span #{translate("project_too_large_please_reduce")}
+					span #{translate("project_too_much_editable_text")}
 
 
 script(type='text/ng-template', id='clearCacheModalTemplate')

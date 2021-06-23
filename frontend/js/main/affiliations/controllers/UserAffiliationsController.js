@@ -189,7 +189,7 @@ export default App.controller(
       _monitorRequest(
         UserAffiliationsDataService.setDefaultUserEmail(userEmail.email)
       ).then(function () {
-        for (let email of $scope.userEmails || []) {
+        for (const email of $scope.userEmails || []) {
           email.default = false
         }
         userEmail.default = true
@@ -309,9 +309,7 @@ export default App.controller(
           })
           $scope.linkedInstitutionIds = emails
             .filter(email => {
-              if (email.samlProviderId) {
-                return email.samlProviderId
-              }
+              return !!email.samlProviderId
             })
             .map(email => email.samlProviderId)
         })

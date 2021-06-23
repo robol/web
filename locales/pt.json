@@ -779,7 +779,6 @@
   "sl_used_over_x_people_at": "__appName__ é usado por mais de __numberOfUsers__ estudantes e acadêmicos de:",
   "collaboration": "Colaboração",
   "work_on_single_version": "Trabalhe junto em uma única versão",
-  "view_collab_edits": "Veja a edição dos colaboradores",
   "ease_of_use": " Facilidade de Uso",
   "no_complicated_latex_install": "Sem instalação complicada do LaTeX",
   "all_packages_and_templates": "Todos os pacotes e <0>__templatesLink__</0> que você precisa",
@@ -806,7 +805,6 @@
   "admin": "admin",
   "subscribe": "Inscrever",
   "update_billing_details": "Atualizar Detalhes de Cobrança",
-  "thank_you": "Obrigado",
   "group_admin": "Administrador do Grupo",
   "all_templates": "Todos os Modelos",
   "your_settings": "Suas Configurações",
@@ -1072,5 +1070,6 @@
   "unlink_github": "Desvincular conta do GitHub",
   "link_to_github": "Vincule à sua conta do GitHub",
   "github_integration": "Integração com o GitHub",
-  "github_is_premium": "Sincronizar com GitHub é um recurso premium"
+  "github_is_premium": "Sincronizar com GitHub é um recurso premium",
+  "thank_you": "Obrigado"
 }

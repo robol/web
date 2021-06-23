@@ -4,6 +4,7 @@ import { Dropdown, MenuItem, OverlayTrigger, Tooltip } from 'react-bootstrap'
 import { useTranslation } from 'react-i18next'
 import classNames from 'classnames'
 import Icon from '../../../shared/components/icon'
+import ControlledDropdown from '../../../shared/components/controlled-dropdown'
 
 function PreviewRecompileButton({
   compilerState: {
@@ -80,11 +81,11 @@ function PreviewRecompileButton({
   )
 
   const buttonElement = (
-    <Dropdown
+    <ControlledDropdown
       id="pdf-recompile-dropdown"
       className={recompileButtonGroupClasses}
     >
-      <button className="btn btn-recompile" onClick={onRecompile}>
+      <button className="btn btn-recompile" onClick={() => onRecompile()}>
         <Icon type="refresh" spin={isCompiling} />
 
         <span id="text-compiling" className="toolbar-text" {...compilingProps}>
@@ -151,7 +152,7 @@ function PreviewRecompileButton({
           {t('recompile_from_scratch')}
         </MenuItem>
       </Dropdown.Menu>
-    </Dropdown>
+    </ControlledDropdown>
   )
 
   return showText ? (
