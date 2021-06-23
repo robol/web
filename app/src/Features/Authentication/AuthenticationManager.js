@@ -200,7 +200,7 @@ const AuthenticationManager = {
   },
   
   ldapAuth(query, passwd, onSuccess, callback, adminMail, userObj) {
-
+  
       const tlsOpts = {
           checkServerIdentity: function(serverName, cert) {
               return undefined;
@@ -209,24 +209,19 @@ const AuthenticationManager = {
       };
 
       const starttlsOpts = {
-          rejectUnauthorized: false // for self-signed
+          rejectUnauthorized: true
       };
 
-      const client = ldap.createClient({
-          url: process.env.LDAP_SERVER,
-          tlsOptions: tlsOpts
-      });
-    
-      const client_dm = ldap.createClient({
-          url: process.env.LDAP_SERVER_DM,
-          tlsOptions: tlsOpts
-      });
-    
       const pieces = query.email.split('@');
       const username = pieces[0];
       const domain = pieces[1];
-    
+
       if (domain == 'mail.dm.unipi.it') {
+          const client_dm = ldap.createClient({
+              url: process.env.LDAP_SERVER_DM,
+              tlsOptions: tlsOpts
+          });
+
           AuthenticationManager.checkLogin(client_dm, username, passwd, domain, function (err, res) {
               if (err == null) {
                   onSuccess(query, adminMail, userObj, res, callback);
@@ -237,6 +232,10 @@ const AuthenticationManager = {
           });
       }
       else {
+          const client = ldap.createClient({
+	      url: process.env.LDAP_SERVER,
+	  });      
+      
           client.starttls(starttlsOpts, client.controls, function (err, res) {
               if (err == null) {
                   AuthenticationManager.checkLogin(client, username, passwd, domain, function (err, res) {
