@@ -13,6 +13,7 @@ jobs:
         run: |
           git clone https://github.com/robol/overleaf.git
           cd overleaf
+          sed -i "6s/master/$(echo $GITHUB_REF | cut -d '/' -f3)/g" services.js
           sudo make build-community
       - name: Docker meta
         id: meta
