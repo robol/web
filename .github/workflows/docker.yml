@@ -28,7 +28,7 @@ jobs:
           cd overleaf
           sed -i "6s/master/$(echo $GITHUB_REF | cut -d '/' -f3)/g" services.js
           sudo make build-community
-          for tag in TAGS; do
+          for tag in $TAGS; do
             sudo docker tag robol/sharelatex $tag
           done
       - name: Login to DockerHub
